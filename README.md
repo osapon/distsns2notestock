@@ -2,6 +2,7 @@
 Show link to notestock from Mastdon user page.
 
 マストドンからnotestockへのリンクを表示するGreasemonkeyスクリプトです。
+notestockで公開設定にしているユーザーしかリンクは表示されません。
 
 GreasemonkeyとTampermonkeyでしかチェックしていません。
 
