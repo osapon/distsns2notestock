@@ -1,7 +1,7 @@
-# mastodon2notestock
-Show link to notestock from Mastdon user page.
+# distsns2notestock
+Show link to notestock from Mastdon & Misskey user page.
 
-マストドンからnotestockへのリンクを表示するGreasemonkeyスクリプトです。
+マストドンやMisskeyからnotestockへのリンクを表示するGreasemonkeyスクリプトです。
 notestockで公開設定にしているユーザーしかリンクは表示されません。
 
 GreasemonkeyとTampermonkeyでしかチェックしていません。
