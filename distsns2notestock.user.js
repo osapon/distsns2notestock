@@ -45,7 +45,7 @@
       if (is_misskey) {
         const obs_body = new MutationObserver(function(mutations) {
           var bio_extra_obj = document.querySelector(".status");
-          if (bio_extra_obj) {
+          if ((res.user) && (res.user.public_view) && bio_extra_obj) {
             this.disconnect();
             bio_extra_obj.insertAdjacentHTML("beforeend", "<a class='' href='"+res.user.url+"' target='_blank'>"+svg+"</a>");
             return;
