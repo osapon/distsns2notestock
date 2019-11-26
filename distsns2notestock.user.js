@@ -8,6 +8,7 @@
 // @grant           GM.xmlHttpRequest
 // @match        https://*/@*
 // @match        https://*/notes/*
+// @downloadURL  https://github.com/osapon/distsns2notestock/raw/master/distsns2notestock.user.js
 // ==/UserScript==
 
 (function() {
