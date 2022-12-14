@@ -2,13 +2,13 @@
 // @name         distsns to notestock
 // @namespace    osa-p.net
 // @author       osa <osa@osa-p.net>
-// @version      1.2.0
+// @version      1.2.1
 // @homepageURL  https://notestock.osa-p.net
 // @grant           GM_xmlhttpRequest
 // @grant           GM.xmlHttpRequest
 // @match        https://*/@*
 // @match        https://*/notes/*
-// @updateURL    https://github.com/osapon/distsns2notestock/raw/master/distsns2notestock.user.js
+// @updateURL    https://github.com/osapon/distsns2notestock/raw/master/distsns2notestock.meta.js
 // @downloadURL  https://github.com/osapon/distsns2notestock/raw/master/distsns2notestock.user.js
 // @homepageURL  https://github.com/osapon/distsns2notestock
 // ==/UserScript==
@@ -25,9 +25,34 @@
     window.GM_xmlhttpRequest = GM.xmlHttpRequest;
   }
 
-  function getId() {
-    let id=false, id_link=document.querySelector("link[rel='alternate'][type='application/activity+json']");
-    if (id_link) id = id_link.getAttribute("href");
+  function getId(platform) {
+    let id = false;
+    // 全部mastodon_v3形式で認識したいですね。
+    switch(platform) {
+      case 'mastodon_v4':
+        let acct = document.querySelector('.account__header__tabs__name small');
+        if (acct) return acct.innerText;
+        else {
+	        let id = document.querySelector('.detailed-status__datetime');
+          if (id) {
+            return location.href.replace(/@/, 'users/').replace(/\/([0-9]+)$/, "/statuses/$1");
+          }
+        }
+        break;
+      case 'misskey':
+        if (location.href.match(/\/notes\//)) {
+          return location.href;
+        }
+        else {
+          let acct = document.querySelector('.mk-acct > .name + .host');
+          if (acct) return acct.parentElement.innerText;
+        }
+        break;
+      case 'mastodon_v3':
+        let id_link = document.querySelector("link[rel='alternate'][type='application/activity+json']");
+        if (id_link) return id_link.getAttribute("href");
+        break;
+    }
     return id;
   }
 
@@ -36,12 +61,11 @@
       if (document.querySelector("#notestock_logo")) return;
       mutations.forEach((mutation) => {
         if ((mutation.addedNodes.length != 1) || ((mutation.target.getAttribute('role') != 'region') && (mutation.target.getAttribute('class') != 'columns-area columns-area--mobile'))/* || (mutation.addedNodes[0].getAttribute('class') != 'scrollable')*/) return;
-
-        // ユーザーページから投稿ページへ遷移したときに、linkタグが更新されないので投稿IDが取得できない
-        let id = getId();
+        let id = getId('mastodon_v4');
+        if (id == false) return;
         let bio_extra_obj = document.querySelector(".account__header__extra__links");
         let status_meta_obj = document.querySelector(".detailed-status__meta");
-        if (id && (bio_extra_obj || status_meta_obj)) {
+        if (bio_extra_obj || status_meta_obj) {
           let loadHandler = function(response){
             let res = JSON.parse(response.responseText);
             if ((res.user) && (res.user.public_view) && bio_extra_obj) {
@@ -53,8 +77,9 @@
               return;
             }
           }
+          let url = 'https://notestock.osa-p.net/api/v1/isstock.json?id=' + id + '&t='+(Math.floor(Date.now()/60000).toString());
           GM_xmlhttpRequest({
-            url:"https://notestock.osa-p.net/api/v1/isstock.json?id="+id,
+            url:url,
             method:'GET',
             onload:loadHandler
           });
@@ -69,9 +94,8 @@
       if (document.querySelector("#notestock_logo")) return;
       mutations.forEach((mutation) => {
         if ((mutation.addedNodes.length != 1) || ((mutation.addedNodes[0].getAttribute('class').substring(0, 6) != '_root_') && (mutation.addedNodes[0].getAttribute('class').split(' ').indexOf('note') == -1))) return;
-
-        // ユーザーページから投稿ページへ遷移したときに、linkタグが更新されないので投稿IDが取得できない
-        let id = getId();
+        let id = getId('misskey');
+        if (id == false) return;
         let bio_extra_obj = document.querySelector(".status");
         let status_meta_obj = document.querySelector("footer");
         if (bio_extra_obj || status_meta_obj) {
@@ -87,7 +111,7 @@
             }
           }
           GM_xmlhttpRequest({
-            url:"https://notestock.osa-p.net/api/v1/isstock.json?id="+id,
+            url:"https://notestock.osa-p.net/api/v1/isstock.json?id="+id+'&t='+(Math.floor(Date.now()/60000).toString()),
             method:'GET',
             onload:loadHandler
           });
@@ -98,7 +122,8 @@
     obs_body.observe(document.querySelector("body"), {childList: true, subtree: true});
   }
     else if (is_mastodon_v3) {
-    let id = getId();
+    let id = getId('mastodon_v3');
+    if (id == false) return;
     let loadHandler = function(response){
       let res = JSON.parse(response.responseText);
       if ((res.user) && (res.user.public_view)) {
@@ -115,7 +140,7 @@
       }
     }
     GM_xmlhttpRequest({
-      url:"https://notestock.osa-p.net/api/v1/isstock.json?id="+id,
+      url:"https://notestock.osa-p.net/api/v1/isstock.json?id="+id+'&t='+(Math.floor(Date.now()/60000).toString()),
       method:'GET',
       onload:loadHandler
     });
